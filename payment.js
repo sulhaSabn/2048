@@ -1,5 +1,5 @@
 const express = require("express");
-const TronWeb = require("tronweb").default;
+const { TronWeb } = require("tronweb");
 
 const User = require("./User");
 const Transaction = require("./Transaction");
@@ -10,65 +10,94 @@ const tronWeb = new TronWeb({
    fullHost: "https://api.trongrid.io"
 });
 
-router.post("/verify", async (req, res) => {
+router.post("/check", async (req, res) => {
 
    try {
 
-      const { txid, userId } = req.body;
+      const { userId } = req.body;
 
       const user = await User.findById(userId);
 
       if (!user) {
 
          return res.json({
-            success: false,
-            message: "کاربر پیدا نشد"
+            message: "User Not Found"
          });
 
       }
 
-      if (user.usedTxids.includes(txid)) {
+      const txs =
+      await tronWeb.trx.getTransactionsRelated(
+         user.walletAddress,
+         "to"
+      );
 
-         return res.json({
-            success: false,
-            message: "TXID تکراری"
-         });
+      let addedCoins = 0;
+
+      for (const tx of txs) {
+
+         try {
+
+            const txid = tx.txID;
+
+            if (user.usedTxids.includes(txid)) {
+               continue;
+            }
+
+            const amount =
+            tx.raw_data.contract[0]
+            .parameter.value.amount / 1000000;
+
+            if (amount <= 0) {
+               continue;
+            }
+
+            const coins = amount * 50;
+
+            user.coins += coins;
+
+            addedCoins += coins;
+
+            user.usedTxids.push(txid);
+
+            await Transaction.create({
+
+               userId: user._id,
+
+               txid,
+
+               amount,
+
+               coins,
+
+               wallet: user.walletAddress
+
+            });
+
+         } catch (e) {
+
+            console.log(e.message);
+
+         }
 
       }
-
-      user.coins += 100;
-      user.usdtBalance += 1;
-
-      user.usedTxids.push(txid);
 
       await user.save();
 
-      await Transaction.create({
-
-         userId: user._id,
-
-         txid,
-
-         amount: 1,
-
-         coins: 100,
-
-         wallet: user.walletAddress
-
-      });
-
       res.json({
-         success: true,
-         coins: user.coins
+
+         message: "Checked",
+
+         addedCoins,
+
+         totalCoins: user.coins
+
       });
 
    } catch (err) {
 
-      console.log(err);
-
-      res.json({
-         success: false,
-         message: "خطا"
+      res.status(500).json({
+         error: err.message
       });
 
    }
