@@ -2,19 +2,19 @@ const mongoose = require("mongoose");
 
 const TransactionSchema = new mongoose.Schema({
 
-   userId:String,
+   userId: String,
 
-   txid:String,
+   txid: String,
 
-   amount:Number,
+   amount: Number,
 
-   coins:Number,
+   coins: Number,
 
-   wallet:String,
+   wallet: String,
 
-   createdAt:{
-      type:Date,
-      default:Date.now
+   createdAt: {
+      type: Date,
+      default: Date.now
    }
 
 });
