@@ -18,7 +18,8 @@ router.post("/register", async(req,res)=>{
 
       const {username,password} = req.body;
 
-      const exists = await User.findOne({username});
+      const exists =
+      await User.findOne({username});
 
       if(exists){
 
@@ -29,7 +30,8 @@ router.post("/register", async(req,res)=>{
 
       }
 
-      const wallet = await tronWeb.createAccount();
+      const wallet =
+      await tronWeb.createAccount();
 
       const hashed =
       await bcrypt.hash(password,10);
@@ -52,9 +54,7 @@ router.post("/register", async(req,res)=>{
 
          success:true,
 
-         wallet:user.walletAddress,
-
-         message:"ثبت نام موفق"
+         wallet:user.walletAddress
 
       });
 
@@ -66,69 +66,8 @@ router.post("/register", async(req,res)=>{
 
          success:false,
 
-         message:"خطا در ساخت کیف پول"
-
-      });
-
-   }
-
-});
-
-router.post("/login", async(req,res)=>{
-
-   try{
-
-      const {username,password} = req.body;
-
-      const user =
-      await User.findOne({username});
-
-      if(!user){
-
-         return res.json({
-            success:false,
-            message:"کاربر پیدا نشد"
-         });
-
-      }
-
-      const match =
-      await bcrypt.compare(
-         password,
-         user.password
-      );
-
-      if(!match){
-
-         return res.json({
-            success:false,
-            message:"رمز اشتباه است"
-         });
-
-      }
-
-      const token = jwt.sign(
-         {id:user._id},
-         process.env.JWT_SECRET
-      );
-
-      res.json({
-
-         success:true,
-
-         token,
-
-         user
-
-      });
-
-   }catch(err){
-
-      console.log(err);
-
-      res.json({
-         success:false,
          message:"خطا"
+
       });
 
    }
