@@ -1,119 +1,100 @@
 const express = require("express");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
-const TronWeb = require("tronweb").default;
+const TronWeb = require("tronweb");
 
 const User = require("./User");
 
 const router = express.Router();
 
 const tronWeb = new TronWeb({
-   fullHost: "https://api.trongrid.io"
+   fullHost:"https://api.trongrid.io"
 });
 
-router.post("/register", async (req, res) => {
+router.post("/register",async(req,res)=>{
 
-   try {
+   try{
 
-      const { username, password } = req.body;
+      const {username,password} = req.body;
 
-      const exists = await User.findOne({ username });
+      const exist = await User.findOne({username});
 
-      if (exists) {
-
+      if(exist){
          return res.json({
-            success: false,
-            message: "نام کاربری وجود دارد"
+            message:"User Exists"
          });
-
       }
+
+      const hashed = await bcrypt.hash(password,10);
 
       const wallet = await tronWeb.createAccount();
 
-      const hashed = await bcrypt.hash(password, 10);
-
-      const user = await User.create({
+      const user = new User({
 
          username,
 
-         password: hashed,
+         password:hashed,
 
-         walletAddress: wallet.address.base58,
+         walletAddress:wallet.address.base58,
 
-         privateKey: wallet.privateKey
+         privateKey:wallet.privateKey
 
       });
+
+      await user.save();
 
       res.json({
-
-         success: true,
-
-         wallet: user.walletAddress
-
+         message:"Registered",
+         wallet:user.walletAddress
       });
 
-   } catch (err) {
-
-      console.log(err);
-
-      res.json({
-         success: false,
-         message: "خطا"
+   }catch(err){
+      res.status(500).json({
+         error:err.message
       });
-
    }
 
 });
 
-router.post("/login", async (req, res) => {
+router.post("/login",async(req,res)=>{
 
-   try {
+   try{
 
-      const { username, password } = req.body;
+      const {username,password} = req.body;
 
-      const user = await User.findOne({ username });
+      const user = await User.findOne({username});
 
-      if (!user) {
-
+      if(!user){
          return res.json({
-            success: false,
-            message: "کاربر وجود ندارد"
+            message:"User Not Found"
          });
-
       }
 
-      const match = await bcrypt.compare(password, user.password);
+      const valid = await bcrypt.compare(
+         password,
+         user.password
+      );
 
-      if (!match) {
-
+      if(!valid){
          return res.json({
-            success: false,
-            message: "رمز اشتباه است"
+            message:"Wrong Password"
          });
-
       }
 
       const token = jwt.sign(
-         { id: user._id },
-         process.env.JWT_SECRET,
-         { expiresIn: "30d" }
+         {id:user._id},
+         process.env.JWT_SECRET
       );
 
       res.json({
-         success: true,
          token,
          user
       });
 
-   } catch (err) {
-
-      console.log(err);
-
-      res.json({
-         success: false,
-         message: "خطا"
+   }catch(err){
+      res.status(500).json({
+         error:err.message
       });
-
    }
 
 });
