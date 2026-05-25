@@ -10,7 +10,7 @@ const tronWeb = new TronWeb({
    fullHost:"https://api.trongrid.io"
 });
 
-const OWNER_WALLET = "YOUR_TRON_ADDRESS";
+const OWNER_WALLET = "TDE8mMioHzXWff1bKfsVpc32AcnWrufPrB";
 
 router.post("/verify", async(req,res)=>{
 
