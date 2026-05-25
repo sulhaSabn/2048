@@ -1,8 +1,7 @@
 const express = require("express");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
-
-const TronWeb = require("tronweb");
+const TronWeb = require("tronweb").default;
 
 const User = require("./User");
 
@@ -58,11 +57,61 @@ router.post("/register", async (req, res) => {
       console.log(err);
 
       res.json({
-
          success: false,
-
          message: "خطا"
+      });
 
+   }
+
+});
+
+router.post("/login", async (req, res) => {
+
+   try {
+
+      const { username, password } = req.body;
+
+      const user = await User.findOne({ username });
+
+      if (!user) {
+
+         return res.json({
+            success: false,
+            message: "کاربر وجود ندارد"
+         });
+
+      }
+
+      const match = await bcrypt.compare(password, user.password);
+
+      if (!match) {
+
+         return res.json({
+            success: false,
+            message: "رمز اشتباه است"
+         });
+
+      }
+
+      const token = jwt.sign(
+         { id: user._id },
+         process.env.JWT_SECRET,
+         { expiresIn: "30d" }
+      );
+
+      res.json({
+         success: true,
+         token,
+         user
+      });
+
+   } catch (err) {
+
+      console.log(err);
+
+      res.json({
+         success: false,
+         message: "خطا"
       });
 
    }
