@@ -2,14 +2,25 @@ const mongoose = require("mongoose");
 
 const UserSchema = new mongoose.Schema({
 
-   username:{
-      type:String,
-      unique:true
-   },
+   username:String,
 
    password:String,
 
+   guest:{
+      type:Boolean,
+      default:false
+   },
+
+   walletAddress:String,
+
+   privateKey:String,
+
    coins:{
+      type:Number,
+      default:50
+   },
+
+   usdtBalance:{
       type:Number,
       default:0
    },
@@ -27,6 +38,16 @@ const UserSchema = new mongoose.Schema({
    bestScore:{
       type:Number,
       default:0
+   },
+
+   skins:{
+      type:Array,
+      default:["default"]
+   },
+
+   activeSkin:{
+      type:String,
+      default:"default"
    },
 
    usedTxids:[String],
