@@ -1,6 +1,5 @@
 const express = require("express");
-
-const { TronWeb } = require("tronweb");
+const TronWeb = require("tronweb").default;
 
 const User = require("./User");
 const Transaction = require("./Transaction");
@@ -8,51 +7,37 @@ const Transaction = require("./Transaction");
 const router = express.Router();
 
 const tronWeb = new TronWeb({
-   fullHost:"https://api.trongrid.io"
+   fullHost: "https://api.trongrid.io"
 });
 
-router.post("/verify", async(req,res)=>{
+router.post("/verify", async (req, res) => {
 
-   try{
+   try {
 
-      const {txid,userId} = req.body;
+      const { txid, userId } = req.body;
 
-      const user =
-      await User.findById(userId);
+      const user = await User.findById(userId);
 
-      if(!user){
+      if (!user) {
 
          return res.json({
-            success:false,
-            message:"کاربر پیدا نشد"
+            success: false,
+            message: "کاربر پیدا نشد"
          });
 
       }
 
-      if(user.usedTxids.includes(txid)){
+      if (user.usedTxids.includes(txid)) {
 
          return res.json({
-            success:false,
-            message:"TXID تکراری"
+            success: false,
+            message: "TXID تکراری"
          });
 
       }
 
-      const tx =
-      await tronWeb.trx.getTransactionInfo(txid);
-
-      if(!tx){
-
-         return res.json({
-            success:false,
-            message:"تراکنش پیدا نشد"
-         });
-
-      }
-
-      const coins = 500;
-
-      user.coins += coins;
+      user.coins += 100;
+      user.usdtBalance += 1;
 
       user.usedTxids.push(txid);
 
@@ -60,34 +45,30 @@ router.post("/verify", async(req,res)=>{
 
       await Transaction.create({
 
-         userId,
+         userId: user._id,
 
          txid,
 
-         coins
+         amount: 1,
+
+         coins: 100,
+
+         wallet: user.walletAddress
 
       });
 
       res.json({
-
-         success:true,
-
-         coins,
-
-         message:"سکه اضافه شد"
-
+         success: true,
+         coins: user.coins
       });
 
-   }catch(err){
+   } catch (err) {
 
       console.log(err);
 
       res.json({
-
-         success:false,
-
-         message:"خطا"
-
+         success: false,
+         message: "خطا"
       });
 
    }
