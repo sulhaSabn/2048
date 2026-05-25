@@ -1,31 +1,33 @@
 const express = require("express");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
-const TronWeb = require("tronweb");
+const { TronWeb } = require("tronweb");
 
 const User = require("./User");
 
 const router = express.Router();
 
 const tronWeb = new TronWeb({
-   fullHost:"https://api.trongrid.io"
+   fullHost: "https://api.trongrid.io"
 });
 
-router.post("/register",async(req,res)=>{
+router.post("/register", async (req, res) => {
 
-   try{
+   try {
 
-      const {username,password} = req.body;
+      const { username, password } = req.body;
 
-      const exist = await User.findOne({username});
+      const exist = await User.findOne({ username });
 
-      if(exist){
+      if (exist) {
+
          return res.json({
-            message:"User Exists"
+            message: "User Exists"
          });
+
       }
 
-      const hashed = await bcrypt.hash(password,10);
+      const hashed = await bcrypt.hash(password, 10);
 
       const wallet = await tronWeb.createAccount();
 
@@ -33,41 +35,50 @@ router.post("/register",async(req,res)=>{
 
          username,
 
-         password:hashed,
+         password: hashed,
 
-         walletAddress:wallet.address.base58,
+         walletAddress: wallet.address.base58,
 
-         privateKey:wallet.privateKey
+         privateKey: wallet.privateKey
 
       });
 
       await user.save();
 
       res.json({
-         message:"Registered",
-         wallet:user.walletAddress
+
+         message: "Registered",
+
+         wallet: user.walletAddress,
+
+         userId: user._id
+
       });
 
-   }catch(err){
+   } catch (err) {
+
       res.status(500).json({
-         error:err.message
+         error: err.message
       });
+
    }
 
 });
 
-router.post("/login",async(req,res)=>{
+router.post("/login", async (req, res) => {
 
-   try{
+   try {
 
-      const {username,password} = req.body;
+      const { username, password } = req.body;
 
-      const user = await User.findOne({username});
+      const user = await User.findOne({ username });
 
-      if(!user){
+      if (!user) {
+
          return res.json({
-            message:"User Not Found"
+            message: "User Not Found"
          });
+
       }
 
       const valid = await bcrypt.compare(
@@ -75,26 +86,52 @@ router.post("/login",async(req,res)=>{
          user.password
       );
 
-      if(!valid){
+      if (!valid) {
+
          return res.json({
-            message:"Wrong Password"
+            message: "Wrong Password"
          });
+
       }
 
       const token = jwt.sign(
-         {id:user._id},
-         process.env.JWT_SECRET
+         { id: user._id },
+         process.env.JWT_SECRET,
+         { expiresIn: "30d" }
       );
 
       res.json({
+
          token,
-         user
+
+         user: {
+
+            id: user._id,
+
+            username: user.username,
+
+            walletAddress: user.walletAddress,
+
+            coins: user.coins,
+
+            level: user.level,
+
+            bestScore: user.bestScore,
+
+            undoCount: user.undoCount,
+
+            bombCount: user.bombCount
+
+         }
+
       });
 
-   }catch(err){
+   } catch (err) {
+
       res.status(500).json({
-         error:err.message
+         error: err.message
       });
+
    }
 
 });
