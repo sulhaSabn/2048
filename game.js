@@ -1,65 +1,46 @@
 const express = require("express");
+
 const User = require("./User");
 
 const router = express.Router();
 
-router.post("/save", async(req,res)=>{
+router.post("/save-score", async (req, res) => {
 
-   const {
-      userId,
-      score,
-      level,
-      coins
-   } = req.body;
+   try {
 
-   const user = await User.findById(userId);
+      const { userId, score } = req.body;
 
-   if(!user || user.guest){
-      return res.json({
-         success:false,
-         message:"کاربر مهمان ذخیره ندارد"
+      const user = await User.findById(userId);
+
+      if (!user) {
+
+         return res.json({
+            success: false
+         });
+
+      }
+
+      user.score = score;
+
+      if (score > user.bestScore) {
+         user.bestScore = score;
+      }
+
+      await user.save();
+
+      res.json({
+         success: true
       });
-   }
 
-   user.score = score;
-   user.level = level;
-   user.coins = coins;
+   } catch (err) {
 
-   if(score > user.bestScore){
-      user.bestScore = score;
-   }
+      console.log(err);
 
-   await user.save();
-
-   res.json({success:true});
-
-});
-
-router.post("/convert-score", async(req,res)=>{
-
-   const {userId} = req.body;
-
-   const user = await User.findById(userId);
-
-   const reward = Math.floor(user.bestScore / 10000);
-
-   if(reward <= 0){
-      return res.json({
-         success:false,
-         message:"امتیاز کافی نیست"
+      res.json({
+         success: false
       });
+
    }
-
-   user.usdtBalance += reward;
-
-   user.bestScore = 0;
-
-   await user.save();
-
-   res.json({
-      success:true,
-      usdt:reward
-   });
 
 });
 
