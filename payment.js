@@ -21,7 +21,10 @@ router.post("/verify", async(req,res)=>{
       const user = await User.findById(userId);
 
       if(!user){
-         return res.json({success:false});
+         return res.json({
+            success:false,
+            message:"کاربر پیدا نشد"
+         });
       }
 
       if(user.usedTxids.includes(txid)){
@@ -59,14 +62,15 @@ router.post("/verify", async(req,res)=>{
 
       res.json({
          success:true,
-         coins
+         coins,
+         message:"سکه اضافه شد"
       });
 
    }catch(err){
 
       res.json({
          success:false,
-         message:"خطا"
+         message:"خطا در بررسی تراکنش"
       });
 
    }
