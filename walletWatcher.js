@@ -1,77 +1,99 @@
-const TronWeb = require("tronweb");
+const { TronWeb } = require("tronweb");
 
 const User = require("./User");
 const Transaction = require("./Transaction");
 
 const tronWeb = new TronWeb({
-   fullHost:"https://api.trongrid.io"
+   fullHost: "https://api.trongrid.io"
 });
 
-async function checkPayments(){
+async function checkPayments() {
 
-   const users = await User.find();
+   try {
 
-   for(const user of users){
+      const users = await User.find();
 
-      try{
+      for (const user of users) {
 
-         const txs = await tronWeb.trx.getTransactionsRelated(
-            user.walletAddress,
-            "to"
-         );
+         try {
 
-         for(const tx of txs){
+            const txs =
+            await tronWeb.trx.getTransactionsRelated(
+               user.walletAddress,
+               "to"
+            );
 
-            const txid = tx.txID;
+            for (const tx of txs) {
 
-            if(user.usedTxids.includes(txid)){
-               continue;
+               try {
+
+                  const txid = tx.txID;
+
+                  if (user.usedTxids.includes(txid)) {
+                     continue;
+                  }
+
+                  const amount =
+                  tx.raw_data.contract[0]
+                  .parameter.value.amount / 1000000;
+
+                  if (amount <= 0) {
+                     continue;
+                  }
+
+                  const coins = amount * 50;
+
+                  user.coins += coins;
+
+                  user.usedTxids.push(txid);
+
+                  await Transaction.create({
+
+                     userId: user._id,
+
+                     txid,
+
+                     amount,
+
+                     coins,
+
+                     wallet: user.walletAddress
+
+                  });
+
+                  console.log(
+                     "Payment Received:",
+                     user.username,
+                     amount,
+                     "TRX"
+                  );
+
+               } catch (e) {
+
+                  console.log(e.message);
+
+               }
+
             }
-
-            const amount =
-            tx.raw_data.contract[0].parameter.value.amount
-            /1000000;
-
-            if(amount <= 0){
-               continue;
-            }
-
-            const coins = amount * 50;
-
-            user.coins += coins;
-
-            user.usedTxids.push(txid);
 
             await user.save();
 
-            await Transaction.create({
+         } catch (err) {
 
-               userId:user._id,
-
-               txid,
-
-               amount,
-
-               coins,
-
-               wallet:user.walletAddress
-
-            });
-
-            console.log(
-               "Payment Received",
-               user.username,
-               amount
-            );
+            console.log(err.message);
 
          }
 
-      }catch(err){
-         console.log(err.message);
       }
+
+   } catch (err) {
+
+      console.log(err.message);
 
    }
 
 }
 
-setInterval(checkPayments,30000);
+setInterval(checkPayments, 30000);
+
+module.exports = checkPayments;
