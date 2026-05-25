@@ -5,11 +5,11 @@ const mongoose = require("mongoose");
 const cors = require("cors");
 
 const authRoutes = require("./auth");
+const gameRoutes = require("./game");
 const paymentRoutes = require("./payment");
 const leaderboardRoutes = require("./leaderboard");
-const gameRoutes = require("./game");
-
-require("./walletWatcher");
+const shopRoutes = require("./shop");
+const adsRoutes = require("./ads");
 
 const app = express();
 
@@ -17,24 +17,18 @@ app.use(cors());
 app.use(express.json());
 
 mongoose.connect(process.env.MONGO_URI)
-.then(() => {
-   console.log("MongoDB Connected");
-})
-.catch(err => {
-   console.log("Mongo Error:", err);
-});
+.then(()=>console.log("MongoDB Connected"))
+.catch(err=>console.log(err));
 
-app.use("/api/auth", authRoutes);
-app.use("/api/payment", paymentRoutes);
-app.use("/api/leaderboard", leaderboardRoutes);
-app.use("/api/game", gameRoutes);
+app.use("/auth",authRoutes);
+app.use("/game",gameRoutes);
+app.use("/payment",paymentRoutes);
+app.use("/leaderboard",leaderboardRoutes);
+app.use("/shop",shopRoutes);
+app.use("/ads",adsRoutes);
 
-app.get("/", (req, res) => {
-   res.send("GameFi 2048 Backend Running");
-});
+require("./walletWatcher");
 
-const PORT = process.env.PORT || 5000;
-
-app.listen(PORT, () => {
-   console.log(`Server Running On Port ${PORT}`);
+app.listen(process.env.PORT || 3000,()=>{
+   console.log("Server Running");
 });
