@@ -10,6 +10,8 @@ const TransactionSchema = new mongoose.Schema({
 
    coins:Number,
 
+   wallet:String,
+
    createdAt:{
       type:Date,
       default:Date.now
