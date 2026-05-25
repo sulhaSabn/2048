@@ -2,71 +2,66 @@ const express = require("express");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 
-const { TronWeb } = require("tronweb");
+const TronWeb = require("tronweb");
 
 const User = require("./User");
 
 const router = express.Router();
 
 const tronWeb = new TronWeb({
-   fullHost:"https://api.trongrid.io"
+   fullHost: "https://api.trongrid.io"
 });
 
-router.post("/register", async(req,res)=>{
+router.post("/register", async (req, res) => {
 
-   try{
+   try {
 
-      const {username,password} = req.body;
+      const { username, password } = req.body;
 
-      const exists =
-      await User.findOne({username});
+      const exists = await User.findOne({ username });
 
-      if(exists){
+      if (exists) {
 
          return res.json({
-            success:false,
-            message:"نام کاربری وجود دارد"
+            success: false,
+            message: "نام کاربری وجود دارد"
          });
 
       }
 
-      const wallet =
-      await tronWeb.createAccount();
+      const wallet = await tronWeb.createAccount();
 
-      const hashed =
-      await bcrypt.hash(password,10);
+      const hashed = await bcrypt.hash(password, 10);
 
       const user = await User.create({
 
          username,
 
-         password:hashed,
+         password: hashed,
 
-         walletAddress:
-         wallet.address.base58,
+         walletAddress: wallet.address.base58,
 
-         privateKey:
-         wallet.privateKey
+         privateKey: wallet.privateKey
 
       });
 
       res.json({
 
-         success:true,
+         success: true,
 
-         wallet:user.walletAddress
+         wallet: user.walletAddress
 
       });
 
-   }catch(err){
+   } catch (err) {
 
       console.log(err);
 
       res.json({
 
-         success:false,
+         success: false,
 
-         message:"خطا"
+         message: "خطا"
 
       });
 
