@@ -6,11 +6,6 @@ const UserSchema = new mongoose.Schema({
 
    password:String,
 
-   guest:{
-      type:Boolean,
-      default:false
-   },
-
    walletAddress:String,
 
    privateKey:String,
@@ -20,7 +15,12 @@ const UserSchema = new mongoose.Schema({
       default:50
    },
 
-   usdtBalance:{
+   usedTxids:{
+      type:[String],
+      default:[]
+   },
+
+   bestScore:{
       type:Number,
       default:0
    },
@@ -30,28 +30,6 @@ const UserSchema = new mongoose.Schema({
       default:1
    },
 
-   score:{
-      type:Number,
-      default:0
-   },
-
-   bestScore:{
-      type:Number,
-      default:0
-   },
-
-   skins:{
-      type:Array,
-      default:["default"]
-   },
-
-   activeSkin:{
-      type:String,
-      default:"default"
-   },
-
-   usedTxids:[String],
-
    createdAt:{
       type:Date,
       default:Date.now
@@ -59,4 +37,5 @@ const UserSchema = new mongoose.Schema({
 
 });
 
-module.exports = mongoose.model("User", UserSchema);
+module.exports =
+mongoose.model("User", UserSchema);
