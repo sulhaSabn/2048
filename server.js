@@ -7,6 +7,9 @@ const cors = require("cors");
 const authRoutes = require("./auth");
 const gameRoutes = require("./game");
 const paymentRoutes = require("./payment");
+const leaderboardRoutes = require("./leaderboard");
+
+require("./walletWatcher");
 
 const app = express();
 
@@ -19,7 +22,8 @@ mongoose.connect(process.env.MONGO_URI)
 app.use("/api/auth", authRoutes);
 app.use("/api/game", gameRoutes);
 app.use("/api/payment", paymentRoutes);
+app.use("/api/leaderboard", leaderboardRoutes);
 
-app.listen(5000,()=>{
+app.listen(process.env.PORT,()=>{
    console.log("Server Running");
 });
